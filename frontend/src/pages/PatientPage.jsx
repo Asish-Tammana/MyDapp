@@ -8,19 +8,28 @@ const PatientPage = ({ healthcareSystem, selectedAccount }) => {
     const [doctorAddress, setDoctorAddress] = useState('');
     const [diagnosis, setDiagnosis] = useState('');
     const [treatmentFile, setTreatmentFile] = useState(null);
+    const [ipfsHash, setIpfsHash] = useState(null);
 
     const updateRecord = async () => {
+
+        console.log(diagnosis)
+        console.log(treatmentFile)
+
         if (diagnosis && treatmentFile) {
             try {
-                
-                const response = await pinata.upload.file(treatmentFile)
-                const ipfsHash = response.cid
 
-                await healthcareSystem.methods.updateMedicalRecord(ipfsHash).send({ from: selectedAccount });
+                // UPLOADING TO CLOUD AND GETTING IPFS HASH
+                const response = await pinata.upload.file(treatmentFile)
+                const ipfsHashResponse = response.cid
+                console.log(ipfsHashResponse)
+
+                // UPLOADING TO BLOCKCHAIN
+                await healthcareSystem.methods.updateMedicalRecord(ipfsHashResponse).send({ from: selectedAccount });
 
                 alert('Medical record updated successfully!');
                 setDiagnosis('');
                 setTreatmentFile(null);
+                setIpfsHash(ipfsHashResponse);
 
             } catch (error) {
                 console.error(error);
@@ -61,6 +70,7 @@ const PatientPage = ({ healthcareSystem, selectedAccount }) => {
     return (
         <div>
             <h2>Patient Page</h2>
+            <p>Connected Account Address:  {selectedAccount}</p>
             <div>
                 <input
                     type="text"
@@ -104,6 +114,8 @@ const PatientPage = ({ healthcareSystem, selectedAccount }) => {
                 />
                 <button onClick={updateRecord} style={{ margin: '10px', padding: '10px' }}>Update Medical Record</button>
             </div>
+            {ipfsHash && <p>Uploaded Document IPFS  Hash: {ipfsHash} </p>}
+
         </div>
     );
 };

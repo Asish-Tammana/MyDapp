@@ -401,35 +401,40 @@ const App = () => {
       }
     ];
 
-    const contractAddress = '0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0';
+    const contractAddress = '0x5FbDB2315678afecb367f032d93F642f64180aa3';
 
     const initialize = async (userType) => {
-        if (window.ethereum) {
-            try {
-              const web3 = new Web3('http://127.0.0.1:8545');
-                await window.ethereum.request({ method: 'eth_requestAccounts' });
-                const account = window.ethereum.selectedAddress;
-                setSelectedAccount(account);
-                console.log('MetaMask Account:', account);
+      if (window.ethereum) {
+          try {
+            // const web3 = new Web3('http://127.0.0.1:8545');
+              // await window.ethereum.request({ method: 'eth_requestAccounts' });
+              await window.ethereum.request({ method: 'wallet_requestPermissions', params: [{ eth_accounts: {} }] });
+              const web3 = new Web3(window.ethereum);
+              // const account = window.ethereum.selectedAddress;
+              
+              const accounts = await web3.eth.getAccounts();
+              const account = accounts[0];
+              setSelectedAccount(account);
+              console.log('MetaMask Account:', account);
 
-                const system = new web3.eth.Contract(abi, contractAddress);
-                setHealthcareSystem(system);
-                console.log("healthcareSystem", system);
+              const system = new web3.eth.Contract(abi, contractAddress);
+              setHealthcareSystem(system);
+              console.log("healthcareSystem", system);
 
-                // Redirect based on userType
-                if (system) {
-                    navigate(`/${userType}`);
-                }else {
-                  console.error("Failed to initialize healthcare system.");
-              }
-            } catch (error) {
-                console.error("User  denied MetaMask connection.");
-                alert("Please allow access to your MetaMask account.");
+              // Redirect based on userType
+              if (system) {
+                  navigate(`/${userType}`);
+              }else {
+                console.error("Failed to initialize healthcare system.");
             }
-        } else {
-            alert('Please install MetaMask to use this DApp.');
-        }
-    };
+          } catch (error) {
+              console.error("User  denied MetaMask connection.");
+              alert("Please allow access to your MetaMask account.");
+          }
+      } else {
+          alert('Please install MetaMask to use this DApp.');
+      }
+  };
 
     const handleUser = (type) => {
         // setUser(type);

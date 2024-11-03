@@ -8,7 +8,8 @@ const DoctorPage = ({ healthcareSystem, selectedAccount }) => {
     const viewRecord = async () => {
         console.log(window.web3)
         try {
-            const fetchedRecord = await healthcareSystem.methods.viewMedicalRecord(patientAddress).call();
+            // const fetchedRecord = await healthcareSystem.methods.viewMedicalRecord(patientAddress).call();
+            const fetchedRecord = await healthcareSystem.methods.viewMedicalRecord(patientAddress).call({ from: selectedAccount });
             setRecord(fetchedRecord);
         } catch (error) {
             console.error(error);
@@ -19,6 +20,7 @@ const DoctorPage = ({ healthcareSystem, selectedAccount }) => {
     return (
         <div>
             <h2>Doctor Page</h2>
+            <p>Connected Account Address:  {selectedAccount}</p>
 
             <div>
                 <input

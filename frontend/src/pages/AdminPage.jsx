@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const AdminPage = ({ healthcareSystem, selectedAccount }) => {
     const [doctorAddress, setDoctorAddress] = useState('');
     const [doctorName, setDoctorName] = useState('');
     const [doctorSpecialization, setDoctorSpecialization] = useState('');
 
+    const navigate = useNavigate()
+
     const registerDoctor = async () => {
-        if (doctorAddress && doctorName && doctorSpecialization) {
             try {
                 await healthcareSystem.methods.registerDoctor(doctorAddress).send({ from: selectedAccount });
                 alert('Doctor registered successfully!');
@@ -17,14 +19,19 @@ const AdminPage = ({ healthcareSystem, selectedAccount }) => {
                 console.error(error);
                 alert('Failed to register doctor.');
             }
-        } else {
-            alert('Please provide doctor address, name, and specialization.');
-        }
+        
     };
+
+    const logoutClicked = () => {
+        console.log("logout clicked")
+        navigate("/")
+
+    }
 
     return (
         <div>
             <h2>Admin Page</h2>
+            <p>Connected Account Address:  {selectedAccount}</p>
             <div>
                 <input 
                     type="text" 
@@ -48,6 +55,7 @@ const AdminPage = ({ healthcareSystem, selectedAccount }) => {
                     style={{ margin: '10px', padding: '10px' }} 
                 /> */}
                 <button onClick={registerDoctor} style={{ margin: '10px', padding: '10px' }}>Register Doctor</button>
+                <button onClick={logoutClicked} style={{ margin: '10px', padding: '10px' }}>Logout</button>
             </div>
         </div>
     );
