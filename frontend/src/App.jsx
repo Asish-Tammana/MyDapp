@@ -5,10 +5,14 @@ import DoctorPage from './pages/DoctorPage';
 import PatientPage from './pages/PatientPage';
 import AdminPage from './pages/AdminPage';
 import Web3 from 'web3';
+import { Snackbar, Alert } from '@mui/material';
 
 const App = () => {
     const [selectedAccount, setSelectedAccount] = useState(null);
     const [healthcareSystem, setHealthcareSystem] = useState(null);
+    const [openSnackbar, setOpenSnackbar] = useState(false);
+    const [snackbarMessage, setSnackbarMessage] = useState('');
+    const [snackbarSeverity, setSnackbarSeverity] = useState('success');
     const navigate = useNavigate();
 
     const abi = [
@@ -406,55 +410,68 @@ const App = () => {
     const initialize = async (userType) => {
       if (window.ethereum) {
           try {
-            // const web3 = new Web3('http://127.0.0.1:8545');
-              // await window.ethereum.request({ method: 'eth_requestAccounts' });
               await window.ethereum.request({ method: 'wallet_requestPermissions', params: [{ eth_accounts: {} }] });
               const web3 = new Web3(window.ethereum);
-              // const account = window.ethereum.selectedAddress;
-              
               const accounts = await web3.eth.getAccounts();
               const account = accounts[0];
               setSelectedAccount(account);
-              console.log('MetaMask Account:', account);
 
               const system = new web3.eth.Contract(abi, contractAddress);
               setHealthcareSystem(system);
-              console.log("healthcareSystem", system);
 
-              // Redirect based on userType
               if (system) {
                   navigate(`/${userType}`);
-              }else {
-                console.error("Failed to initialize healthcare system.");
-            }
+              } else {
+                  showSnackbar('Failed to initialize healthcare system.', 'error');
+              }
           } catch (error) {
-              console.error("User  denied MetaMask connection.");
-              alert("Please allow access to your MetaMask account.");
+              showSnackbar('User denied MetaMask connection.', 'error');
           }
       } else {
-          alert('Please install MetaMask to use this DApp.');
+          showSnackbar('Please install MetaMask to use this DApp.', 'error');
       }
   };
 
     const handleUser = (type) => {
-        // setUser(type);
         initialize(type);
     };
 
-    // useEffect(() => {
-    //     if (selectedAccount && userType) {
-    //         navigate(`/${userType}`);
-    //     }
-    // }, [selectedAccount, userType, navigate]);
+    const showSnackbar = (message, severity) => {
+        setSnackbarMessage(message);
+        setSnackbarSeverity(severity);
+        setOpenSnackbar(true);
+    };
+
+    const logoutClicked = () => {
+      setHealthcareSystem(null);
+      setSelectedAccount(null);
+      navigate("/");
+    };
+
+    const handleCloseSnackbar = () => {
+        setOpenSnackbar(false);
+    };
 
     return (
         <div style={{ padding: '20px' }}>
             <Routes>
                 <Route path="/" element={<HomePage TypeSelect={handleUser} />} />
-                <Route path="/doctor" element={<DoctorPage healthcareSystem={healthcareSystem} selectedAccount={selectedAccount} />} />
-                <Route path="/patient" element={<PatientPage healthcareSystem={healthcareSystem} selectedAccount={selectedAccount} />} />
-                <Route path="/admin" element={<AdminPage healthcareSystem={healthcareSystem} selectedAccount={selectedAccount} />} />
+                <Route path="/doctor" element={<DoctorPage healthcareSystem={healthcareSystem} selectedAccount={selectedAccount} logoutClicked={logoutClicked} />} />
+                <Route path="/patient" element={<PatientPage healthcareSystem={healthcareSystem} selectedAccount={selectedAccount} logoutClicked={logoutClicked} />} />
+                <Route path="/admin" element={<AdminPage healthcareSystem={healthcareSystem} selectedAccount={selectedAccount} logoutClicked={logoutClicked} />} />
             </Routes>
+
+            {/* Snackbar for showing messages */}
+            <Snackbar
+                open={openSnackbar}
+                autoHideDuration={2500}
+                onClose={handleCloseSnackbar}
+                anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+            >
+                <Alert onClose={handleCloseSnackbar} severity={snackbarSeverity} sx={{ width: '100%' }}>
+                    {snackbarMessage}
+                </Alert>
+            </Snackbar>
         </div>
     );
 };
